@@ -3,15 +3,19 @@ pragma solidity >=0.4.22 <0.7.0;
 
 contract RebalancingSetTokenInterface {
     address public currentSet;
-
-    function getComponents() external view returns (address[] memory);
+    uint256 public unitShares;
+    uint256 public naturalUnit;
+    uint8 public decimals;
 }
 
 
 contract SetTokenInterface {
     address[] public components;
+    uint256[] public units;
+    uint256 public naturalUnit;
 
     function getComponents() external view returns (address[] memory);
+    function getUnits() external view returns (uint256[] memory);
 }
 
 
@@ -21,37 +25,38 @@ contract Decompose {
 
     address public setAddress;
     SetTokenInterface setContract;
+    uint256 public setTokenUnitsInRbSet;
 
-    address public collateralAddress;
+    address[] public collateralAddresses;
+    uint256[] public collateralUnits;
 
     constructor(address _rbAddress) public {
         rbAddress = _rbAddress;
         rbContract = RebalancingSetTokenInterface(_rbAddress);
-    }
+        setTokenUnitsInRbSet = (10.0 ** rbContract.decimals) * rbContract.unitShares / rbContract.naturalUnit;
 
-    function getComponents() public view returns (address[] memory) {
-        return rbContract.getComponents();
-    }
-
-    function setIntermediateAddress() public {
-        address[] memory components = this.getComponents();
-        setAddress = components[0];
-    }
-
-    function setIntermediateContract() public {
+        setAddress = rbContract.currentSet;
         setContract = SetTokenInterface(setAddress);
+
+        collateralAddresses = setContract.getComponents();
+        setCollateralUnits();
     }
 
-    function getIntermediateComponents()
-        public
-        view
-        returns (address[] memory)
-    {
-        return setContract.getComponents();
+    function getCollateralAddresses() public view returns (address[] memory) {
+        return collateralAddresses;
     }
 
-    function setCollateralAddress() public {
-        address[] memory components = this.getIntermediateComponents();
-        collateralAddress = components[0];
+    function getCollateralUnits() public view returns (uint256[] memory) {
+        return collateralUnits;
+    }
+
+    function getSetToken() public view returns (address) {
+        return setAddress;
+    }
+
+    function setCollateralUnits() private {
+        for(uint i = 0 ; i < getCollateralAddresses().length ; i++) {
+            collateralUnits[i] = setContract.getUnits()[i] / setContract.naturalUnit * setTokenUnitsInRbSet;
+        }
     }
 }
