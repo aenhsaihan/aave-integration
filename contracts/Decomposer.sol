@@ -14,11 +14,25 @@ contract SetTokenInterface {
     function naturalUnit() external view returns (uint256);
 }
 
+contract TokenSetsCoreInterface {
+    function validSets(address _set) external view returns (bool);
+}
+
 
 contract Decomposer {
-    function decomposeSet(address _tokenSetAddress) public view returns (address[] memory components, uint256[] memory units) {
-        RebalancingSetTokenInterface tokenSet = RebalancingSetTokenInterface(_tokenSetAddress);
-        uint256 intermediateUnitsInSet = tokenSet.unitShares() * 1 ether / tokenSet.naturalUnit();
+    address public tokenSetsCoreAddress;
+    TokenSetsCoreInterface tokenSetsCore;
+
+    constructor(address _tokenSetsCoreAddress) public {
+        tokenSetsCoreAddress = _tokenSetsCoreAddress;
+        tokenSetsCore = TokenSetsCoreInterface(_tokenSetsCoreAddress);
+    }
+
+    function decomposeSet(address _setAddress) public view returns (address[] memory components, uint256[] memory units) {
+        require(tokenSetsCore.validSets(_setAddress), "Address to decompose should be a valid TokenSet Address");
+
+        RebalancingSetTokenInterface tokenSet = RebalancingSetTokenInterface(_setAddress);
+        uint256 intermediateUnitsInSet = tokenSet.unitShares() * (10 ** uint256(tokenSet.decimals())) / tokenSet.naturalUnit();
 
         SetTokenInterface intermediateSet = SetTokenInterface(tokenSet.currentSet());
 
