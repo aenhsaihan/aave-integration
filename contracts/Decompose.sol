@@ -33,9 +33,9 @@ contract Decompose {
     constructor(address _rbAddress) public {
         rbAddress = _rbAddress;
         rbContract = RebalancingSetTokenInterface(_rbAddress);
-        setTokenUnitsInRbSet = (10.0 ** rbContract.decimals) * rbContract.unitShares / rbContract.naturalUnit;
+        setTokenUnitsInRbSet = rbContract.unitShares() / rbContract.naturalUnit();
 
-        setAddress = rbContract.currentSet;
+        setAddress = rbContract.currentSet();
         setContract = SetTokenInterface(setAddress);
 
         collateralAddresses = setContract.getComponents();
@@ -56,7 +56,7 @@ contract Decompose {
 
     function setCollateralUnits() private {
         for(uint i = 0 ; i < getCollateralAddresses().length ; i++) {
-            collateralUnits[i] = setContract.getUnits()[i] / setContract.naturalUnit * setTokenUnitsInRbSet;
+            collateralUnits[i] = setContract.getUnits()[i] / setContract.naturalUnit() * setTokenUnitsInRbSet;
         }
     }
 }
