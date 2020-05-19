@@ -852,7 +852,8 @@ const lpAddressProviderContract = new web3.eth.Contract(
 let priceOracleAddress;
 let price;
 
-const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // mainnet USDC
+const intermediateAddress = "0xD3d759aA6b91096e1626ee39c65A9EfF73D6Fb03";
+const collateralAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // mainnet USDC
 
 (async () => {
   // Get the latest PriceOracle address
@@ -869,7 +870,7 @@ const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // mainnet USD
     priceOracleAddress
   );
   price = await priceOracleContract.methods
-    .getAssetPrice(usdcAddress)
+    .getAssetPrice(collateralAddress)
     .call()
     .catch((e) => {
       throw Error(`Error getting priceOracle price: ${e.message}`);
@@ -883,7 +884,7 @@ contract("Decompose", (accounts) => {
     const decomposeInstance = await Decompose.deployed();
     const components = await decomposeInstance.getComponents.call();
     const [component] = components;
-    assert.equal(component, "0xD3d759aA6b91096e1626ee39c65A9EfF73D6Fb03");
+    assert.equal(component, intermediateAddress);
   });
 
   it("should set intermediate address", async () => {
@@ -902,7 +903,7 @@ contract("Decompose", (accounts) => {
     const [
       component,
     ] = await decomposeInstance.getIntermediateComponents.call();
-    assert.equal(component, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
+    assert.equal(component, collateralAddress);
   });
 
   it("should set collateral address", async () => {
