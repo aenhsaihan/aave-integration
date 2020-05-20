@@ -1,16 +1,22 @@
 pragma solidity >=0.4.22 <0.7.0;
 
+
 // TokenSets Interfaces
 interface RebalancingSetTokenInterface {
     function currentSet() external view returns (address);
+
     function unitShares() external view returns (uint256);
+
     function naturalUnit() external view returns (uint256);
+
     function decimals() external view returns (uint8);
 }
 
 interface SetTokenInterface {
     function getComponents() external view returns (address[] memory);
+
     function getUnits() external view returns (uint256[] memory);
+
     function naturalUnit() external view returns (uint256);
 }
 
@@ -54,10 +60,15 @@ contract Decomposer {
         ) {
         require(tokenSetsCore.validSets(_setAddress), "Address to decompose should be a valid TokenSet Address");
 
-        RebalancingSetTokenInterface tokenSet = RebalancingSetTokenInterface(_setAddress);
-        uint256 intermediateUnitsInSet = tokenSet.unitShares() * (10 ** uint256(tokenSet.decimals())) / tokenSet.naturalUnit();
+        RebalancingSetTokenInterface tokenSet = RebalancingSetTokenInterface(
+            _setAddress
+        );
+        uint256 intermediateUnitsInSet = (tokenSet.unitShares() *
+            (10**uint256(tokenSet.decimals()))) / tokenSet.naturalUnit();
 
-        SetTokenInterface intermediateSet = SetTokenInterface(tokenSet.currentSet());
+        SetTokenInterface intermediateSet = SetTokenInterface(
+            tokenSet.currentSet()
+        );
 
         components = intermediateSet.getComponents();
         units = new uint256[](components.length);
