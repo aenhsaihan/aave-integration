@@ -12,6 +12,7 @@ interface RebalancingSetTokenInterface {
     function decimals() external view returns (uint8);
 }
 
+
 interface SetTokenInterface {
     function getComponents() external view returns (address[] memory);
 
@@ -20,18 +21,11 @@ interface SetTokenInterface {
     function naturalUnit() external view returns (uint256);
 }
 
+
 interface TokenSetsCoreInterface {
     function validSets(address _set) external view returns (bool);
 }
 
-// Aave Interfaces
-interface LendingPoolAddressesProvider {
-    function getPriceOracle() external view returns (address);
-}
-
-interface IPriceOracleGetter {
-    function getAssetsPrices(address[] calldata _assets) external view returns (uint256[] memory);
-}
 
 // Aave Interfaces
 interface LendingPoolAddressesProvider {
@@ -58,7 +52,6 @@ contract Decomposer {
         address _tokenSetsCoreAddress,
         address _lpAddressesProviderAddress
     ) public {
-
         tokenSetsCoreAddress = _tokenSetsCoreAddress;
         tokenSetsCore = TokenSetsCoreInterface(_tokenSetsCoreAddress);
 

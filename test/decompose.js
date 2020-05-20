@@ -874,7 +874,7 @@ contract("Decomposer", (accounts) => {
       units,
       prices,
       setPrice,
-    } = await decomposeInstance.decomposeSet.call(ethersi6040address);
+    } = await decomposeInstance.decomposeAndPriceSet.call(ethersi6040address);
 
     assert.equal(
       components.length,
@@ -913,7 +913,7 @@ contract("Decomposer", (accounts) => {
       units,
       prices,
       setPrice,
-    } = await decomposeInstance.decomposeSet.call(ethrsiapyAddress);
+    } = await decomposeInstance.decomposeAndPriceSet.call(ethrsiapyAddress);
 
     assert.equal(
       components.length,
@@ -925,9 +925,10 @@ contract("Decomposer", (accounts) => {
   });
 
   it("should get components of BTCETH7525 contract", async () => {
-    const { components, units } = await decomposeInstance.decomposeSet.call(
-      btcEth7525Address
-    );
+    const {
+      components,
+      units,
+    } = await decomposeInstance.decomposeAndPriceSet.call(btcEth7525Address);
 
     assert.equal(
       components.length,
@@ -941,8 +942,9 @@ contract("Decomposer", (accounts) => {
   });
 
   it("should reject when address to decompose is not a Set", async () => {
+    const decomposeInstance = await Decomposer.deployed();
     await truffleAssert.fails(
-      decomposeInstance.decomposeSet.call(
+      decomposeInstance.decomposeAndPriceSet.call(
         "0xf3862af14cbb4d9b781e41a3d4d74e7c2cdb73e2"
       ),
       truffleAssert.ErrorType.REVERT,
