@@ -13,6 +13,7 @@ What things you need to install the software and how to install them
 ```
 npm install -g truffle
 npm install -g ganache-cli
+npm install truffle-assertions
 ```
 
 ### Running ganache-cli mainnet fork

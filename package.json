@@ -1,0 +1,29 @@
+{
+  "name": "aave-integration",
+  "version": "1.0.0",
+  "description": "HackMoney project to integrate TokenSet as collateral for the Aave protocol",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "truffle-hdwallet-provider": "^1.0.17"
+  },
+  "devDependencies": {
+    "truffle-assertions": "^0.9.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aenhsaihan/aave-integration.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aenhsaihan/aave-integration/issues"
+  },
+  "homepage": "https://github.com/aenhsaihan/aave-integration#readme"
+}
