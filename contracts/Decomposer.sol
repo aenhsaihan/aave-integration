@@ -33,6 +33,20 @@ interface IPriceOracleGetter {
     function getAssetsPrices(address[] calldata _assets) external view returns (uint256[] memory);
 }
 
+// Aave Interfaces
+interface LendingPoolAddressesProvider {
+    function getPriceOracle() external view returns (address);
+}
+
+
+interface IPriceOracleGetter {
+    function getAssetsPrices(address[] calldata _assets)
+        external
+        view
+        returns (uint256[] memory);
+}
+
+
 contract Decomposer {
     address public tokenSetsCoreAddress;
     TokenSetsCoreInterface tokenSetsCore;
@@ -40,12 +54,18 @@ contract Decomposer {
     address public aaveLPAddressesProviderAddress;
     IPriceOracleGetter priceOracle;
 
-    constructor(address _tokenSetsCoreAddress, address _lpAddressesProviderAddress) public {
+    constructor(
+        address _tokenSetsCoreAddress,
+        address _lpAddressesProviderAddress
+    ) public {
+
         tokenSetsCoreAddress = _tokenSetsCoreAddress;
         tokenSetsCore = TokenSetsCoreInterface(_tokenSetsCoreAddress);
 
         aaveLPAddressesProviderAddress = _lpAddressesProviderAddress;
-        LendingPoolAddressesProvider provider = LendingPoolAddressesProvider(_lpAddressesProviderAddress);
+        LendingPoolAddressesProvider provider = LendingPoolAddressesProvider(
+            _lpAddressesProviderAddress
+        );
         priceOracle = IPriceOracleGetter(provider.getPriceOracle());
     }
 
@@ -57,8 +77,12 @@ contract Decomposer {
             uint256[] memory units,
             uint256[] memory prices,
             uint256 setPrice
-        ) {
-        require(tokenSetsCore.validSets(_setAddress), "Address to decompose should be a valid TokenSet Address");
+        )
+    {
+        require(
+            tokenSetsCore.validSets(_setAddress),
+            "Address to decompose should be a valid TokenSet Address"
+        );
 
         RebalancingSetTokenInterface tokenSet = RebalancingSetTokenInterface(
             _setAddress
@@ -75,8 +99,10 @@ contract Decomposer {
         prices = priceOracle.getAssetsPrices(components);
         setPrice = 0;
 
-        for(uint i = 0 ; i < components.length ; i++) {
-            units[i] = intermediateSet.getUnits()[i] * intermediateUnitsInSet / intermediateSet.naturalUnit();
+        for (uint256 i = 0; i < components.length; i++) {
+            units[i] =
+                (intermediateSet.getUnits()[i] * intermediateUnitsInSet) /
+                intermediateSet.naturalUnit();
             setPrice += prices[i] * units[i];
         }
 
