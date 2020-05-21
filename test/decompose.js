@@ -907,6 +907,11 @@ contract("Decomposer", (accounts) => {
     assert(units[0].gt(0));
   });
 
+  it("should getAssetPrice of ETHERSI6040 contract", async () => {
+    const price = await decomposeInstance.getAssetPrice.call(ethersi6040address);
+    assert(price > 0);
+  });
+
   it("should get components of ETHRSIAPY contract", async () => {
     const {
       components,
@@ -922,6 +927,15 @@ contract("Decomposer", (accounts) => {
     );
     assert.include([CUSDC, WETH], components[0]);
     assert(units[0].gt(0));
+
+    // Currently neither CUSDC nor WETH return prices, so we can validate that setPrice is 0
+    assert.equal(setPrice, 0);
+  });
+
+  it("should getAssetPrice of ETHRSIAPY contract", async () => {
+    // Currently neither CUSDC nor WETH return prices, so we can validate that setPrice is 0
+    const price = await decomposeInstance.getAssetPrice.call(ethrsiapyAddress);
+    assert.equal(price, 0);
   });
 
   it("should get components of BTCETH7525 contract", async () => {
@@ -939,6 +953,13 @@ contract("Decomposer", (accounts) => {
     assert.include(components, WBTC, "wBTC should be a component.");
     assert(units[0].gt(0));
     assert(units[1].gt(0));
+  });
+
+  it("should getAssetPrice of BTCETH7525 contract", async () => {
+    // Currently WETH doesn't have a price oracle on Aave, so even though wBTC has it
+    // the returned price should be 0.
+    const price = await decomposeInstance.getAssetPrice.call(btcEth7525Address);
+    assert.equal(price, 0);
   });
 
   it("should reject when address to decompose is not a Set", async () => {

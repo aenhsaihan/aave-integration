@@ -71,6 +71,11 @@ contract Decomposer {
         priceOracle = IPriceOracleGetter(provider.getPriceOracle());
     }
 
+    function getAssetPrice(address _asset) public view returns (uint256 price) {
+        (, , , price) = decomposeAndPriceSet(_asset);
+        return price;
+    }
+
     function decomposeAndPriceSet(address _setAddress)
         public
         view
@@ -112,6 +117,7 @@ contract Decomposer {
         prices = priceOracle.getAssetsPrices(components);
         // Accumulator for the SetPrice. Initialize as 0.
         setPrice = 0;
+        bool gotAllPrices = true;
 
         for (uint256 i = 0; i < components.length; i++) {
             // By multiplying the units of the component in this intermediateSet
@@ -125,7 +131,14 @@ contract Decomposer {
             //  accumulate the price when there is more than one component.
             setPrice += (prices[i] * units[i]) /
                 (10 ** uint256(ERC20(components[i]).decimals()));
+
+            // In case one of the prices is missing, we don't want to return an incorrect price.
+            if (prices[i] == 0) {
+                gotAllPrices = false;
+            }
         }
+
+        if (!gotAllPrices) setPrice = 0;
 
         return (components, units, prices, setPrice);
     }
