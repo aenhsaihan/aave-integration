@@ -39,6 +39,8 @@ interface LendingPoolAddressesProvider {
 
 
 interface IPriceOracleGetter {
+    function getAssetPrice(address _asset) external view returns(uint256);
+
     function getAssetsPrices(address[] calldata _assets)
         external
         view
