@@ -1,21 +1,27 @@
 pragma solidity >=0.4.22 <0.7.0;
 
+
 interface CToken {
-  function exchangeRateCurrent() returns (uint);
-  function underlying() returns (address);
-  function decimals() returns (unit8);
+    function exchangeRateCurrent() external returns (uint256);
+
+    function underlying() external returns (address);
+
+    function decimals() external returns (uint8);
 }
 
+
 interface UnderlyingToken {
-  function decimals() returns (unit8);
+    function decimals() external returns (uint8);
 }
+
 
 interface LendingPoolAddressesProvider {
     function getPriceOracle() external view returns (address);
 }
 
+
 interface IPriceOracleGetter {
-    function getAssetPrice(address _asset) external view returns(uint256);
+    function getAssetPrice(address _asset) external view returns (uint256);
 
     function getAssetsPrices(address[] calldata _assets)
         external
@@ -23,26 +29,43 @@ interface IPriceOracleGetter {
         returns (uint256[] memory);
 }
 
+
 contract CTokensOracle {
-  address public aaveLPAddressesProviderAddress;
-  IPriceOracleGetter priceOracle;
+    address public aaveLPAddressesProviderAddress;
+    IPriceOracleGetter priceOracle;
 
-  constructor(address _lpAddressesProviderAddress) public {
-    // Create the interface with the Aave Price Oracle.
-    // Used to price this Set in ETH.
-    aaveLPAddressesProviderAddress = _lpAddressesProviderAddress;
-    LendingPoolAddressesProvider provider = LendingPoolAddressesProvider(
-        _lpAddressesProviderAddress
-    );
-    priceOracle = IPriceOracleGetter(provider.getPriceOracle());
-  }
+    constructor(address _lpAddressesProviderAddress) public {
+        // Create the interface with the Aave Price Oracle.
+        // Used to price this Set in ETH.
+        aaveLPAddressesProviderAddress = _lpAddressesProviderAddress;
+        LendingPoolAddressesProvider provider = LendingPoolAddressesProvider(
+            _lpAddressesProviderAddress
+        );
+        priceOracle = IPriceOracleGetter(provider.getPriceOracle());
+    }
 
-  function getAssetPrice(address _cTokenAddress) public view returns (uint25) {
-    cToken = CToken(_cTokenAddress);
-    underlying = UnderlyingToken(cToken.underlying());
-    uint oneCTokenInUnderlying = cToken.exchangeRateCurrent() /
-      (10 ** (18 + uint256(underlying.decimals() - cToken.decimals())));
+    function calculate(
+        uint256 _exchangeRateCurrent,
+        uint256 _underlyingDecimals,
+        uint256 _cTokenDecimals
+    ) internal pure returns (uint256) {
+        return
+            _exchangeRateCurrent /
+            (10**(18 + _underlyingDecimals - _cTokenDecimals));
+    }
 
-    return oneCTokenInUnderlying * priceOracle.getAssetPrice(underlying);
-  }
+    function getAssetPrice(address _cTokenAddress) public returns (uint256) {
+        CToken cToken = CToken(_cTokenAddress);
+        UnderlyingToken underlying = UnderlyingToken(
+            address(cToken.underlying())
+        );
+
+        uint256 oneCTokenInUnderlying = calculate(
+            cToken.exchangeRateCurrent(),
+            underlying.decimals(),
+            cToken.decimals()
+        );
+
+        return oneCTokenInUnderlying;
+    }
 }

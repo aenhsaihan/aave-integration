@@ -849,8 +849,9 @@ const lpAddressProviderContract = new web3.eth.Contract(
 );
 
 const Decomposer = artifacts.require("Decomposer");
+const CTokensOracle = artifacts.require("CTokensOracle");
 const truffleAssert = require("truffle-assertions");
-let decomposeInstance;
+let decomposeInstance, ctokensOracleInstance;
 
 // mainnent token sets
 const ethrsiapyAddress = "0x136faE4333EA36A24bb751E2d505D6ca4Fd9f00b";
@@ -908,7 +909,9 @@ contract("Decomposer", (accounts) => {
   });
 
   it("should getAssetPrice of ETHERSI6040 contract", async () => {
-    const price = await decomposeInstance.getAssetPrice.call(ethersi6040address);
+    const price = await decomposeInstance.getAssetPrice.call(
+      ethersi6040address
+    );
     assert(price > 0);
   });
 
@@ -971,5 +974,16 @@ contract("Decomposer", (accounts) => {
       truffleAssert.ErrorType.REVERT,
       "Address to decompose should be a valid TokenSet Address"
     );
+  });
+});
+
+contract("CTokensOracle", (accounts) => {
+  before(async () => {
+    ctokensOracleInstance = await CTokensOracle.deployed();
+  });
+
+  it("should getAssetPrice of cToken", async () => {
+    const assetPrice = await ctokensOracleInstance.getAssetPrice.call(CUSDC);
+    assert.equal(assetPrice.toNumber(), 0);
   });
 });
