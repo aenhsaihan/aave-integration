@@ -47,9 +47,13 @@ contract CTokensOracle {
         CToken cToken = CToken(_cTokenAddress);
         UnderlyingToken underlying = UnderlyingToken(cToken.underlying());
 
+        uint oneCTokenInUnderlying;
+        if (cToken.decimals() > underlying.decimals()) {
+            oneCTokenInUnderlying = cToken.exchangeRateStored() * (10 ** (uint256(cToken.decimals()) - uint256(underlying.decimals())));
+        } else {
+            oneCTokenInUnderlying = cToken.exchangeRateStored() / (10 ** (uint256(underlying.decimals()) - uint256(cToken.decimals())));
+        }
 
-        // This math is not correct yet. revisit
-        return (cToken.exchangeRateStored() * priceOracle.getAssetPrice(cToken.underlying())) /
-            (10**(18-uint256(underlying.decimals())));
+        return (oneCTokenInUnderlying * priceOracle.getAssetPrice(cToken.underlying())) / 1 ether;
     }
 }
