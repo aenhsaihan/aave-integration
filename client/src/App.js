@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, createRef } from "react";
 import Web3 from "web3";
 import "./App.css";
 import {
@@ -22,35 +22,33 @@ class App extends Component {
     this.state = { account: "" };
   }
 
-  async decomposeSet(e) {
+  decomposeSet = async (e) => {
+    const address = this.refs.addressInput.value;
+
     const web3 = new Web3("http://localhost:8545");
     const tokenSetsComposer = new web3.eth.Contract(
       TOKEN_SETS_DECOMPOSER_ABI,
       TOKEN_SETS_DECOMPOSER_ADDRESS
     );
-    // this.setState({ tokenSetsComposer });
 
-    const ethersi6040address = "0x93E01899c10532d76C0E864537a1D26433dBbDdB";
     const {
       components,
       units,
       prices,
       setPrice,
-    } = await tokenSetsComposer.methods
-      .decomposeAndPriceSet(ethersi6040address)
-      .call();
+    } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
     console.log(components);
     console.log(units);
     console.log(prices);
     console.log(setPrice);
-  }
+  };
 
   render() {
     return (
       <div className="container">
         <h1>Hello, World!</h1>
         <p>Your account: {this.state.account}</p>
-        <input type="text" />
+        <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
         <div>Information from get</div>
       </div>
