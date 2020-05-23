@@ -1,17 +1,16 @@
 pragma solidity >=0.4.22 <0.7.0;
 
-
 interface CToken {
-    function exchangeRateCurrent() external returns (uint256);
+    function exchangeRateStored() external view returns (uint256);
 
-    function underlying() external returns (address);
+    function underlying() external view returns (address);
 
-    function decimals() external returns (uint8);
+    function decimals() external view returns (uint8);
 }
 
 
 interface UnderlyingToken {
-    function decimals() external returns (uint8);
+    function decimals() external view returns (uint8);
 }
 
 
@@ -44,28 +43,13 @@ contract CTokensOracle {
         priceOracle = IPriceOracleGetter(provider.getPriceOracle());
     }
 
-    function calculate(
-        uint256 _exchangeRateCurrent,
-        uint256 _underlyingDecimals,
-        uint256 _cTokenDecimals
-    ) internal pure returns (uint256) {
-        return
-            _exchangeRateCurrent /
-            (10**(18 + _underlyingDecimals - _cTokenDecimals));
-    }
-
-    function getAssetPrice(address _cTokenAddress) public returns (uint256) {
+    function getAssetPrice(address _cTokenAddress) public view returns (uint256) {
         CToken cToken = CToken(_cTokenAddress);
-        UnderlyingToken underlying = UnderlyingToken(
-            address(cToken.underlying())
-        );
+        UnderlyingToken underlying = UnderlyingToken(cToken.underlying());
 
-        uint256 oneCTokenInUnderlying = calculate(
-            cToken.exchangeRateCurrent(),
-            underlying.decimals(),
-            cToken.decimals()
-        );
 
-        return oneCTokenInUnderlying;
+        // This math is not correct yet. revisit
+        return (cToken.exchangeRateStored() * priceOracle.getAssetPrice(cToken.underlying())) /
+            (10**(18-uint256(underlying.decimals())));
     }
 }

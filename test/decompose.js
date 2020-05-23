@@ -842,16 +842,18 @@ const LendingPoolAddressesProviderABI = [
     type: "function",
   },
 ];
+
+
 const lpAddressProviderAddress = "0x24a42fD28C976A61Df5D00D0599C34c4f90748c8"; // mainnet address, for other addresses: https://docs.aave.com/developers/developing-on-aave/deployed-contract-instances
 const lpAddressProviderContract = new web3.eth.Contract(
   LendingPoolAddressesProviderABI,
   lpAddressProviderAddress
 );
 
-const Decomposer = artifacts.require("Decomposer");
+const TokenSetsDecomposer = artifacts.require("TokenSetsDecomposer");
 const CTokensOracle = artifacts.require("CTokensOracle");
 const truffleAssert = require("truffle-assertions");
-let decomposeInstance, ctokensOracleInstance;
+let tokenSetsDecomposer, ctokensOracleInstance;
 
 // mainnent token sets
 const ethrsiapyAddress = "0x136faE4333EA36A24bb751E2d505D6ca4Fd9f00b";
@@ -864,9 +866,9 @@ const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
-contract("Decomposer", (accounts) => {
+contract("TokenSetsDecomposer", (accounts) => {
   before(async () => {
-    decomposeInstance = await Decomposer.deployed();
+    tokenSetsDecomposer = await TokenSetsDecomposer.deployed();
   });
 
   it("should get components of ETHERSI6040 contract", async () => {
@@ -875,7 +877,7 @@ contract("Decomposer", (accounts) => {
       units,
       prices,
       setPrice,
-    } = await decomposeInstance.decomposeAndPriceSet.call(ethersi6040address);
+    } = await tokenSetsDecomposer.decomposeAndPriceSet.call(ethersi6040address);
 
     assert.equal(
       components.length,
@@ -905,14 +907,14 @@ contract("Decomposer", (accounts) => {
       });
 
     assert.equal(assetPrice, prices[0].toNumber());
-    assert(units[0].gt(0));
+    assert.notEqual(units[0].toString(), "0");
   });
 
   it("should getAssetPrice of ETHERSI6040 contract", async () => {
-    const price = await decomposeInstance.getAssetPrice.call(
+    const price = await tokenSetsDecomposer.getAssetPrice.call(
       ethersi6040address
     );
-    assert(price > 0);
+    assert.notEqual(price.toString(), "0");
   });
 
   it("should get components of ETHRSIAPY contract", async () => {
@@ -921,7 +923,7 @@ contract("Decomposer", (accounts) => {
       units,
       prices,
       setPrice,
-    } = await decomposeInstance.decomposeAndPriceSet.call(ethrsiapyAddress);
+    } = await tokenSetsDecomposer.decomposeAndPriceSet.call(ethrsiapyAddress);
 
     assert.equal(
       components.length,
@@ -929,23 +931,21 @@ contract("Decomposer", (accounts) => {
       "There must be only 1 component in this Set"
     );
     assert.include([CUSDC, WETH], components[0]);
-    assert(units[0].gt(0));
+    assert.notEqual(units[0].toString(), "0");
 
-    // Currently neither CUSDC nor WETH return prices, so we can validate that setPrice is 0
-    assert.equal(setPrice, 0);
+    assert.notEqual(setPrice.toString(), "0");
   });
 
   it("should getAssetPrice of ETHRSIAPY contract", async () => {
-    // Currently neither CUSDC nor WETH return prices, so we can validate that setPrice is 0
-    const price = await decomposeInstance.getAssetPrice.call(ethrsiapyAddress);
-    assert.equal(price, 0);
+    const price = await tokenSetsDecomposer.getAssetPrice.call(ethrsiapyAddress);
+    assert.notEqual(price.toString(), "0");
   });
 
   it("should get components of BTCETH7525 contract", async () => {
     const {
       components,
       units,
-    } = await decomposeInstance.decomposeAndPriceSet.call(btcEth7525Address);
+    } = await tokenSetsDecomposer.decomposeAndPriceSet.call(btcEth7525Address);
 
     assert.equal(
       components.length,
@@ -954,19 +954,17 @@ contract("Decomposer", (accounts) => {
     );
     assert.include(components, WETH, "wETH should be a component.");
     assert.include(components, WBTC, "wBTC should be a component.");
-    assert(units[0].gt(0));
-    assert(units[1].gt(0));
+    assert.notEqual(units[0].toString(), "0");
+    assert.notEqual(units[1].toString(), "0");
   });
 
   it("should getAssetPrice of BTCETH7525 contract", async () => {
-    // Currently WETH doesn't have a price oracle on Aave, so even though wBTC has it
-    // the returned price should be 0.
-    const price = await decomposeInstance.getAssetPrice.call(btcEth7525Address);
-    assert.equal(price, 0);
+    const price = await tokenSetsDecomposer.getAssetPrice.call(btcEth7525Address);
+    assert.notEqual(price.toString(), "0");
   });
 
   it("should reject when address to decompose is not a Set", async () => {
-    const decomposeInstance = await Decomposer.deployed();
+    const decomposeInstance = await TokenSetsDecomposer.deployed();
     await truffleAssert.fails(
       decomposeInstance.decomposeAndPriceSet.call(
         "0xf3862af14cbb4d9b781e41a3d4d74e7c2cdb73e2"
@@ -984,6 +982,6 @@ contract("CTokensOracle", (accounts) => {
 
   it("should getAssetPrice of cToken", async () => {
     const assetPrice = await ctokensOracleInstance.getAssetPrice.call(CUSDC);
-    assert.equal(assetPrice.toNumber(), 0);
+    assert.notEqual(assetPrice.toString(), "0");
   });
 });

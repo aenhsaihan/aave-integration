@@ -1,5 +1,7 @@
 pragma solidity >=0.4.22 <0.7.0;
 
+import "../contracts/PriceOracleProxy.sol";
+
 // ERC20 Interface
 interface ERC20 {
     function decimals() external view returns (uint8);
@@ -32,45 +34,24 @@ interface TokenSetsCoreInterface {
 }
 
 
-// Aave Interfaces
-interface LendingPoolAddressesProvider {
-    function getPriceOracle() external view returns (address);
-}
-
-
-interface IPriceOracleGetter {
-    function getAssetPrice(address _asset) external view returns(uint256);
-
-    function getAssetsPrices(address[] calldata _assets)
-        external
-        view
-        returns (uint256[] memory);
-}
-
-
-contract Decomposer {
+contract TokenSetsDecomposer {
     address public tokenSetsCoreAddress;
     TokenSetsCoreInterface tokenSetsCore;
 
-    address public aaveLPAddressesProviderAddress;
-    IPriceOracleGetter priceOracle;
+    address public priceOracleProxyAddress;
+    PriceOracleProxy priceOracleProxy;
 
     constructor(
         address _tokenSetsCoreAddress,
-        address _lpAddressesProviderAddress
+        address _priceOracleProxyAddress
     ) public {
         // Create the interface with the TokenSetsCore.
         // Used to validate the Set to decompose.
         tokenSetsCoreAddress = _tokenSetsCoreAddress;
         tokenSetsCore = TokenSetsCoreInterface(_tokenSetsCoreAddress);
 
-        // Create the interface with the Aave Price Oracle.
-        // Used to price this Set in ETH.
-        aaveLPAddressesProviderAddress = _lpAddressesProviderAddress;
-        LendingPoolAddressesProvider provider = LendingPoolAddressesProvider(
-            _lpAddressesProviderAddress
-        );
-        priceOracle = IPriceOracleGetter(provider.getPriceOracle());
+        priceOracleProxyAddress = _priceOracleProxyAddress;
+        priceOracleProxy = PriceOracleProxy(_priceOracleProxyAddress);
     }
 
     function getAssetPrice(address _asset) public view returns (uint256 price) {
@@ -116,7 +97,7 @@ contract Decomposer {
         // are composing the TokenSet (RebalancingSetToken)
         units = new uint256[](components.length);
         // Get the prices of the components by calling the Aave PriceOracle.
-        prices = priceOracle.getAssetsPrices(components);
+        prices = priceOracleProxy.getAssetsPrices(components);
         // Accumulator for the SetPrice. Initialize as 0.
         setPrice = 0;
         bool gotAllPrices = true;
