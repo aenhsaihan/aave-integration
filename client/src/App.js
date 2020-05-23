@@ -19,7 +19,13 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { account: "", components: "" };
+    this.state = {
+      account: "",
+      components: "",
+      units: "",
+      prices: "",
+      setPrice: "",
+    };
   }
 
   decomposeSet = async (e) => {
@@ -37,11 +43,13 @@ class App extends Component {
       prices,
       setPrice,
     } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
-    console.log(components);
-    console.log(units);
-    console.log(prices);
-    console.log(setPrice);
-    this.setState({ components: components });
+
+    this.setState({
+      components: components,
+      units: units,
+      prices: prices,
+      setPrice: setPrice,
+    });
   };
 
   render() {
@@ -51,7 +59,10 @@ class App extends Component {
         <p>Your account: {this.state.account}</p>
         <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
-        <div>{this.state.components}</div>
+        <div>Component: {this.state.components}</div>
+        <div>Units: {this.state.units}</div>
+        <div>Price: {this.state.prices}</div>
+        <div>Set price: {this.state.setPrice}</div>
       </div>
     );
   }
