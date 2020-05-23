@@ -15,14 +15,20 @@ class App extends Component {
     const web3 = new Web3("http://localhost:8545");
     const accounts = await web3.eth.getAccounts();
     this.setState({ account: accounts[0] });
+  }
 
+  constructor(props) {
+    super(props);
+    this.state = { account: "" };
+  }
+
+  async decomposeSet(e) {
+    const web3 = new Web3("http://localhost:8545");
     const tokenSetsComposer = new web3.eth.Contract(
       TOKEN_SETS_DECOMPOSER_ABI,
       TOKEN_SETS_DECOMPOSER_ADDRESS
     );
-    this.setState({ tokenSetsComposer });
-
-    console.log(tokenSetsComposer);
+    // this.setState({ tokenSetsComposer });
 
     const ethersi6040address = "0x93E01899c10532d76C0E864537a1D26433dBbDdB";
     const {
@@ -39,16 +45,14 @@ class App extends Component {
     console.log(setPrice);
   }
 
-  constructor(props) {
-    super(props);
-    this.state = { account: "" };
-  }
-
   render() {
     return (
       <div className="container">
         <h1>Hello, World!</h1>
         <p>Your account: {this.state.account}</p>
+        <input type="text" />
+        <button onClick={this.decomposeSet}>Get</button>
+        <div>Information from get</div>
       </div>
     );
   }
