@@ -19,7 +19,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { account: "" };
+    this.state = { account: "", components: "" };
   }
 
   decomposeSet = async (e) => {
@@ -41,6 +41,7 @@ class App extends Component {
     console.log(units);
     console.log(prices);
     console.log(setPrice);
+    this.setState({ components: components });
   };
 
   render() {
@@ -50,7 +51,7 @@ class App extends Component {
         <p>Your account: {this.state.account}</p>
         <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
-        <div>Information from get</div>
+        <div>{this.state.components}</div>
       </div>
     );
   }
