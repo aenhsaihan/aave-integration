@@ -21,7 +21,7 @@ const tokenUrl = address => `http://etherscan.io/token/${address}`
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isError, setIsError] = React.useState(false);
-  const [tokenSet, setTokenSet] = React.useState('0x93E01899c10532d76C0E864537a1D26433dBbDdB');
+  const [tokenSet, setTokenSet] = React.useState('0xA35Fc5019C4dc509394Bd4d74591a0bF8852c195');
   const [tokenSetSymbol, setTokenSetSymbol] = React.useState('');
   const [components, setComponents] = React.useState([]);
   const [tokenSetPrice, setTokenSetPrice] = React.useState(0.0);
@@ -47,8 +47,15 @@ const App = () => {
         components,
         units,
         prices,
-        setPrice,
-      } = await tokenSetsComposer.methods.decomposeAndPriceSet(tokenSet).call();
+        setPrice
+      } = await tokenSetsComposer.methods.decomposeAndPriceSet(tokenSet).call().then(response => {
+        return {
+          components: response.components,
+          units: response.units.map(val => new Big(val)),
+          prices: response.prices.map(val => new Big(val)),
+          setPrice: new Big(response.setPrice)
+        };
+      });
 
       const groupedComponents = await Promise.all(components.map(async (component, i) => {
         const tokenData = await handleFetchTokenSymbolAndDecimals(component);
@@ -56,15 +63,16 @@ const App = () => {
         return {
           address: component,
           symbol: tokenData.symbol,
-          units: new Big(units[i]).div(10 ** tokenData.decimals).toString(10),
-          price: convertPrice(new Big(prices[i])),
+          units: units[i].div(10 ** tokenData.decimals).toString(10),
+          price: convertPrice(prices[i]),
           url: tokenUrl(component)
         };
       }));
+
       const tokenSetData = await handleFetchTokenSymbolAndDecimals(tokenSet);
       setTokenSetSymbol(tokenSetData.symbol);
       setComponents(groupedComponents);
-      setTokenSetPrice(convertPrice(new Big(setPrice)));
+      setTokenSetPrice(convertPrice(setPrice));
       setIsLoading(false);
       setIsError(false);
     } catch (e) {
@@ -80,16 +88,17 @@ const App = () => {
   
   return (
     <div className="container">
-      <h1>Decompose and Price your Token Set</h1>
+      <h1>Decompose and Price a TokenSet</h1>
       <label htmlFor="decompose">TokenSet Address:&nbsp;</label>
-      <input id="decompose" type="text" value={tokenSet} autoFocus onChange={handleTokenSetChange}/>
+      <input id="decompose" type="text" value={tokenSet} autoFocus style={{width: "500px"}} onChange={handleTokenSetChange}/>
       < hr />
       {isError && <p>Something went wrong: {isError}</p>}
       {isLoading ? (
         <p>Loading ...</p>
       ) : (
         <div>
-          <div>Set price: <strong>{tokenSetPrice} ETH</strong></div>
+          <div><strong>{tokenSetSymbol}</strong> price: <strong>{tokenSetPrice} ETH</strong></div>
+          <br />
           <div>Set Composition for <strong><a href={tokenUrl(tokenSet)}>{tokenSetSymbol}</a>:</strong></div>
           <SetComponentList components={components}/>
         </div>
