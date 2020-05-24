@@ -49,15 +49,12 @@ class App extends Component {
       setPrice,
     } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
 
-    console.log(components);
-    console.log(units);
-    console.log(prices);
-    console.log(setPrice);
-
     this.setState({
       components: components,
       units: units,
-      prices: prices,
+      prices: prices.map((price) => {
+        return this.convertPrice(price);
+      }),
       setPrice: this.convertPrice(setPrice),
     });
   };
@@ -73,7 +70,7 @@ class App extends Component {
         <SetComponentList components={this.state.components} />
         <div>Units:</div>
         <SetComponentList components={this.state.units} />
-        <div>Price:</div>
+        <div>Prices:</div>
         <SetComponentList components={this.state.prices} />
         <div>Set price: {this.state.setPrice} ETH</div>
       </div>
