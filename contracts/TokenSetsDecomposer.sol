@@ -5,6 +5,8 @@ import "../contracts/PriceOracleProxy.sol";
 // ERC20 Interface
 interface ERC20 {
     function decimals() external view returns (uint8);
+
+    function symbol() external view returns (string memory);
 }
 
 
