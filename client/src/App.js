@@ -1,4 +1,5 @@
-import React, { Component, createRef } from "react";
+import React, { Component, useState } from "react";
+import SetComponentList from "./components/SetComponentList";
 import Web3 from "web3";
 import "./App.css";
 import {
@@ -21,7 +22,7 @@ class App extends Component {
     super(props);
     this.state = {
       account: "",
-      components: "",
+      components: [],
       units: "",
       prices: "",
       setPrice: "",
@@ -68,7 +69,8 @@ class App extends Component {
         <p>Your account: {this.state.account}</p>
         <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
-        <div>Component: {this.state.components}</div>
+        <div>Components:</div>
+        <SetComponentList components={this.state.components} />
         <div>Units: {this.state.units}</div>
         <div>Price: {this.state.prices}</div>
         <div>Set price: {this.state.setPrice} ETH</div>
