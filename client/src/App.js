@@ -65,7 +65,7 @@ class App extends Component {
   render() {
     return (
       <div className="container">
-        <h1>Hello, World!</h1>
+        <h1>Decompose and Price your Token Set</h1>
         <p>Your account: {this.state.account}</p>
         <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
