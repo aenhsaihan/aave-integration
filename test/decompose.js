@@ -859,9 +859,11 @@ let tokenSetsDecomposer, ctokensOracleInstance;
 const ethrsiapyAddress = "0x136faE4333EA36A24bb751E2d505D6ca4Fd9f00b";
 const btcEth7525Address = "0xA35Fc5019C4dc509394Bd4d74591a0bF8852c195";
 const ethersi6040address = "0x93E01899c10532d76C0E864537a1D26433dBbDdB";
+const ethdaisAddress = "0xa12a696b9b11788076a6cb384cac6986b82545e1";
 
 // mainnet collateral addresses
 const CUSDC = "0x39AA39c021dfbaE8faC545936693aC917d5E7563";
+const CDAI = "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643";
 const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
@@ -963,6 +965,14 @@ contract("TokenSetsDecomposer", (accounts) => {
     assert.notEqual(price.toString(), "0");
   });
 
+  it("should getAssetPrice of ETHDAIS contract", async () => {
+    const price = await tokenSetsDecomposer.getAssetPrice.call(
+      ethdaisAddress
+    );
+
+    assert.notEqual(price.toString(), "0");
+  });
+
   it("should reject when address to decompose is not a Set", async () => {
     const decomposeInstance = await TokenSetsDecomposer.deployed();
     await truffleAssert.fails(
@@ -980,8 +990,13 @@ contract("CTokensOracle", (accounts) => {
     ctokensOracleInstance = await CTokensOracle.deployed();
   });
 
-  it("should getAssetPrice of cToken", async () => {
+  it("should getAssetPrice of cUSDC", async () => {
     const assetPrice = await ctokensOracleInstance.getAssetPrice.call(CUSDC);
+    assert.notEqual(assetPrice.toString(), "0");
+  });
+
+  it("should getAssetPrice of cDAI", async () => {
+    const assetPrice = await ctokensOracleInstance.getAssetPrice.call(CDAI);
     assert.notEqual(assetPrice.toString(), "0");
   });
 });
