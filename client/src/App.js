@@ -1,7 +1,7 @@
-import React, { Component, useState } from "react";
+import React from "react";
 import SetComponentList from "./components/SetComponentList";
 import Web3 from "web3";
-import "./App.css";
+import Big from "big.js";
 import {
   TOKEN_SETS_DECOMPOSER_ABI,
   TOKEN_SETS_DECOMPOSER_ADDRESS,
@@ -9,81 +9,93 @@ import {
   WEB3_URL
 } from "./config";
 
-class App extends Component {
-  componentWillMount() {
-    this.loadBlockchainData();
+const web3 = new Web3(WEB3_URL);
+const tokenSetsComposer = new web3.eth.Contract(
+  TOKEN_SETS_DECOMPOSER_ABI,
+  TOKEN_SETS_DECOMPOSER_ADDRESS
+);
+
+const convertPrice = price => price.div(10 ** 18).toString(10);
+const tokenUrl = address => `http://etherscan.io/token/${address}`
+
+const App = () => {
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isError, setIsError] = React.useState(false);
+  const [tokenSet, setTokenSet] = React.useState('0x93E01899c10532d76C0E864537a1D26433dBbDdB');
+  const [tokenSetSymbol, setTokenSetSymbol] = React.useState('');
+  const [components, setComponents] = React.useState([]);
+  const [tokenSetPrice, setTokenSetPrice] = React.useState(0.0);
+
+  const handleTokenSetChange = event => {
+    setTokenSet(event.target.value);
   }
 
-  async loadBlockchainData() {
-    const web3 = new Web3(WEB3_URL);
-    const accounts = await web3.eth.getAccounts();
-    this.setState({ account: accounts[0] });
+  const handleFetchTokenSymbolAndDecimals = async (component) => {
+    const erc20 = new web3.eth.Contract(ERC20_ABI, component);
+    const tokenSymbol = await erc20.methods.symbol().call();
+    const tokenDecimals = await erc20.methods.decimals().call();
+
+    return {
+      symbol: tokenSymbol,
+      decimals: tokenDecimals
+    }
   }
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      account: "",
-      components: [],
-      units: [],
-      prices: [],
-      setPrice: "",
-    };
-  }
+  const handleFetchTokenSetComposition = React.useCallback(async () => {
+    try {
+      const {
+        components,
+        units,
+        prices,
+        setPrice,
+      } = await tokenSetsComposer.methods.decomposeAndPriceSet(tokenSet).call();
 
-  convertPrice = (price) => {
-    return price / 10 ** 18;
-  };
+      const groupedComponents = await Promise.all(components.map(async (component, i) => {
+        const tokenData = await handleFetchTokenSymbolAndDecimals(component);
 
-  decomposeSet = async (e) => {
-    const address = this.refs.addressInput.value;
+        return {
+          address: component,
+          symbol: tokenData.symbol,
+          units: new Big(units[i]).div(10 ** tokenData.decimals).toString(10),
+          price: convertPrice(new Big(prices[i])),
+          url: tokenUrl(component)
+        };
+      }));
+      const tokenSetData = await handleFetchTokenSymbolAndDecimals(tokenSet);
+      setTokenSetSymbol(tokenSetData.symbol);
+      setComponents(groupedComponents);
+      setTokenSetPrice(convertPrice(new Big(setPrice)));
+      setIsLoading(false);
+      setIsError(false);
+    } catch (e) {
+      setIsLoading(true);
+      setIsError(e.toString());
+    }
+  }, [tokenSet]);
 
-    const web3 = new Web3(WEB3_URL);
-    const tokenSetsComposer = new web3.eth.Contract(
-      TOKEN_SETS_DECOMPOSER_ABI,
-      TOKEN_SETS_DECOMPOSER_ADDRESS
-    );
-
-    const {
-      components,
-      units,
-      prices,
-      setPrice,
-    } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
-
-    const setComponents = []
-    components.forEach(async (component, i) => {
-      const erc20 = new web3.eth.Contract(ERC20_ABI, component);
-      const tokenSymbol = await erc20.methods.symbol().call();
-      const tokenDecimals = await erc20.methods.decimals().call();
-
-      setComponents.push({
-        address: component,
-        symbol: tokenSymbol,
-        units: units[i] / 10 ** tokenDecimals,
-        price: this.convertPrice(prices[i])
-      })
-    });
-
-    this.setState({
-      components: setComponents,
-      setPrice: this.convertPrice(setPrice),
-    });
-  };
-
-  render() {
-    return (
-      <div className="container">
-        <h1>Decompose and Price your Token Set</h1>
-        <p>Your account: {this.state.account}</p>
-        <input type="text" ref="addressInput" />
-        <button onClick={this.decomposeSet}>Get</button>
-        <div>Set Composition:</div>
-        <SetComponentList components={this.state.components} />
-        <div>Set price: {this.state.setPrice} ETH</div>
-      </div>
-    );
-  }
+  React.useEffect(() => {
+    setIsLoading(true);
+    handleFetchTokenSetComposition();
+  }, [handleFetchTokenSetComposition]);
+  
+  return (
+    <div className="container">
+      <h1>Decompose and Price your Token Set</h1>
+      <label htmlFor="decompose">TokenSet Address:&nbsp;</label>
+      <input id="decompose" type="text" value={tokenSet} autoFocus onChange={handleTokenSetChange}/>
+      < hr />
+      {isError && <p>Something went wrong: {isError}</p>}
+      {isLoading ? (
+        <p>Loading ...</p>
+      ) : (
+        <div>
+          <div>Set price: <strong>{tokenSetPrice} ETH</strong></div>
+          <div>Set Composition for <strong><a href={tokenUrl(tokenSet)}>{tokenSetSymbol}</a>:</strong></div>
+          <SetComponentList components={components}/>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default App;
