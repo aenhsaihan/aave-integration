@@ -28,6 +28,10 @@ class App extends Component {
     };
   }
 
+  convertPrice = (price) => {
+    return price / 10 ** 18;
+  };
+
   decomposeSet = async (e) => {
     const address = this.refs.addressInput.value;
 
@@ -44,11 +48,16 @@ class App extends Component {
       setPrice,
     } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
 
+    console.log(components);
+    console.log(units);
+    console.log(prices);
+    console.log(setPrice);
+
     this.setState({
       components: components,
       units: units,
       prices: prices,
-      setPrice: setPrice,
+      setPrice: this.convertPrice(setPrice),
     });
   };
 
@@ -62,7 +71,7 @@ class App extends Component {
         <div>Component: {this.state.components}</div>
         <div>Units: {this.state.units}</div>
         <div>Price: {this.state.prices}</div>
-        <div>Set price: {this.state.setPrice}</div>
+        <div>Set price: {this.state.setPrice} ETH</div>
       </div>
     );
   }
