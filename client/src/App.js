@@ -23,8 +23,8 @@ class App extends Component {
     this.state = {
       account: "",
       components: [],
-      units: "",
-      prices: "",
+      units: [],
+      prices: [],
       setPrice: "",
     };
   }
@@ -71,8 +71,10 @@ class App extends Component {
         <button onClick={this.decomposeSet}>Get</button>
         <div>Components:</div>
         <SetComponentList components={this.state.components} />
-        <div>Units: {this.state.units}</div>
-        <div>Price: {this.state.prices}</div>
+        <div>Units:</div>
+        <SetComponentList components={this.state.units} />
+        <div>Price:</div>
+        <SetComponentList components={this.state.prices} />
         <div>Set price: {this.state.setPrice} ETH</div>
       </div>
     );
