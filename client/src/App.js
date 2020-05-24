@@ -5,6 +5,8 @@ import "./App.css";
 import {
   TOKEN_SETS_DECOMPOSER_ABI,
   TOKEN_SETS_DECOMPOSER_ADDRESS,
+  ERC20_ABI,
+  WEB3_URL
 } from "./config";
 
 class App extends Component {
@@ -13,7 +15,7 @@ class App extends Component {
   }
 
   async loadBlockchainData() {
-    const web3 = new Web3("http://localhost:8545");
+    const web3 = new Web3(WEB3_URL);
     const accounts = await web3.eth.getAccounts();
     this.setState({ account: accounts[0] });
   }
@@ -36,7 +38,7 @@ class App extends Component {
   decomposeSet = async (e) => {
     const address = this.refs.addressInput.value;
 
-    const web3 = new Web3("http://localhost:8545");
+    const web3 = new Web3(WEB3_URL);
     const tokenSetsComposer = new web3.eth.Contract(
       TOKEN_SETS_DECOMPOSER_ABI,
       TOKEN_SETS_DECOMPOSER_ADDRESS
@@ -49,12 +51,22 @@ class App extends Component {
       setPrice,
     } = await tokenSetsComposer.methods.decomposeAndPriceSet(address).call();
 
+    const setComponents = []
+    components.forEach(async (component, i) => {
+      const erc20 = new web3.eth.Contract(ERC20_ABI, component);
+      const tokenSymbol = await erc20.methods.symbol().call();
+      const tokenDecimals = await erc20.methods.decimals().call();
+
+      setComponents.push({
+        address: component,
+        symbol: tokenSymbol,
+        units: units[i] / 10 ** tokenDecimals,
+        price: this.convertPrice(prices[i])
+      })
+    });
+
     this.setState({
-      components: components,
-      units: units,
-      prices: prices.map((price) => {
-        return this.convertPrice(price);
-      }),
+      components: setComponents,
       setPrice: this.convertPrice(setPrice),
     });
   };
@@ -66,12 +78,8 @@ class App extends Component {
         <p>Your account: {this.state.account}</p>
         <input type="text" ref="addressInput" />
         <button onClick={this.decomposeSet}>Get</button>
-        <div>Components:</div>
+        <div>Set Composition:</div>
         <SetComponentList components={this.state.components} />
-        <div>Units:</div>
-        <SetComponentList components={this.state.units} />
-        <div>Prices:</div>
-        <SetComponentList components={this.state.prices} />
         <div>Set price: {this.state.setPrice} ETH</div>
       </div>
     );
