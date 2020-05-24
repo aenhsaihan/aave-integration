@@ -1,8 +1,11 @@
 import React from "react";
-import SetComponent from "./SetComponent";
+import SetComponentListItem from "./SetComponentListItem";
 
-export default function SetComponentList({ components }) {
-  return components.map((component) => {
-    return <SetComponent key={component} component={component} />;
-  });
-}
+const SetComponentList = ({components}) =>
+  <ul>
+    {components.map(component =>
+      <SetComponentListItem key={component.address} component={component} />
+    )}
+  </ul>
+
+export default SetComponentList;
